@@ -50,29 +50,10 @@ public class CorsoService {
             } else {
                 corso.setDocente(null);
             }
-            // Ricerca di eventuali alunni nella tabella CorsoAlunni
-            try {
-                // Get alunnoIds from CorsoAlunni join table
-                List<Long> alunnoIds = corsoAlunniRepository.findAlunniByCorsoId(corso.getId()).stream()
-                        .map(CorsoAlunni::getAlunnoId)
-                        .toList();
-
-                // Fetch actual alunni from external service
-                List<AlunnoWithoutCorsiDTO> alunni = alunnoIds.stream()
-                        .map(alunniConnector::getAlunno)
-                        .toList();
-
-                corso.setAlunni(alunni);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                corso.setAlunni(null);
-            }
+            addAlunni(corso);
         }
-
         return corsi;
     }
-
 
     public CorsoDTO findById(Long id) {
         CorsoDTO corso = corsoMapper.toDTO(corsoRepository.findById(id).orElseThrow());
@@ -82,25 +63,7 @@ public class CorsoService {
         } else {
             corso.setDocente(null);
         }
-
-        try {
-            // Get alunnoIds from CorsoAlunni join table
-            List<Long> alunnoIds = corsoAlunniRepository.findAlunniByCorsoId(corso.getId()).stream()
-                    .map(CorsoAlunni::getAlunnoId)
-                    .toList();
-
-            // Fetch actual alunni from external service
-            List<AlunnoWithoutCorsiDTO> alunni = alunnoIds.stream()
-                    .map(alunniConnector::getAlunno)
-                    .toList();
-
-            corso.setAlunni(alunni);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            corso.setAlunni(null);
-        }
-
+        addAlunni(corso);
         return corso;
     }
 
@@ -147,16 +110,14 @@ public class CorsoService {
                 List<Long> alunnoIds = new ArrayList<>();
                 corsoDTO.getAlunni().forEach(alunno -> alunnoIds.add(alunno.getId()));
                 List<CorsoAlunni> iscrizioni = new ArrayList<>();
-                List<AlunnoWithoutCorsiDTO> alunni = new ArrayList<>();
                 alunnoIds.forEach(alunnoId -> {
                     CorsoAlunni iscrizione = new CorsoAlunni();
                     iscrizione.setAlunnoId(alunnoId);
                     iscrizione.setCorsoId(savedDto.getId());
                     iscrizioni.add(iscrizione);
-                    alunni.add(alunniConnector.getAlunno(alunnoId));
                 });
                 corsoAlunniRepository.saveAll(iscrizioni);
-                savedDto.setAlunni(alunni);
+                addAlunni(savedDto);
             }
 
             return ApiBaseResponse.<CorsoDTO>builder()
@@ -186,6 +147,25 @@ public class CorsoService {
     public List<CorsoDTO> findByDocente(Long docenteId) {
         List<CorsoDTO> corsi = corsoMapper.toDTO(corsoRepository.findByDocenteId(docenteId));
         return corsi;
+    }
+
+    private void addAlunni(CorsoDTO corsoDTO) {
+        List<AlunnoWithoutCorsiDTO> alunni;
+        try {
+            // Get alunnoIds from CorsoAlunni join table
+            List<Long> alunnoIds = corsoAlunniRepository.findAlunniByCorsoId(corsoDTO.getId()).stream()
+                    .map(CorsoAlunni::getAlunnoId)
+                    .toList();
+
+            // Fetch actual alunni from external service
+            alunni = new ArrayList<>(alunniConnector.getAlunni(alunnoIds));
+
+            corsoDTO.setAlunni(alunni);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            corsoDTO.setAlunni(null);
+        }
     }
 
 }

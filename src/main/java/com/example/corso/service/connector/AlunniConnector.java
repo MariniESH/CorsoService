@@ -17,12 +17,16 @@ public class AlunniConnector {
     @Autowired
     WebClient webClient;
 
-    public AlunnoWithoutCorsiDTO getAlunno(Long id) {
-        return webClient.get()
-                .uri("/alunni/{id}", id)
+    public List<AlunnoWithoutCorsiDTO> getAlunni(List<Long> ids) {
+        if (ids.isEmpty()) { return List.of(); }
+
+        return webClient.post()
+                .uri("/alunni/by-ids", ids)
+                .bodyValue(ids)
                 .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth)
                 .retrieve()
-                .bodyToMono(AlunnoWithoutCorsiDTO.class)
+                .bodyToFlux(AlunnoWithoutCorsiDTO.class)
+                .collectList()
                 .block();
     }
 }
