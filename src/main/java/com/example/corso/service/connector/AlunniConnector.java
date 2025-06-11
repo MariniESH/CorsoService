@@ -11,8 +11,8 @@ import java.util.List;
 
 @Component
 public class AlunniConnector {
-    private String credentials = "user:pass1234";
-    private String encodedAuth = Base64.getEncoder().encodeToString(credentials.getBytes());
+//    private String credentials = "user:pass1234";
+//    private String encodedAuth = Base64.getEncoder().encodeToString(credentials.getBytes());
 
     @Autowired
     WebClient webClient;
@@ -23,7 +23,7 @@ public class AlunniConnector {
         return webClient.post()
                 .uri("/alunni/by-ids", ids)
                 .bodyValue(ids)
-                .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth)
+//                .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth)
                 .retrieve()
                 .bodyToFlux(AlunnoWithoutCorsiDTO.class)
                 .collectList()

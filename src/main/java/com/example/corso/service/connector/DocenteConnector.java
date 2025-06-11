@@ -11,8 +11,8 @@ import java.util.Base64;
 
 @Component
 public class DocenteConnector {
-    private String credentials = "user:pass1234";
-    private String encodedAuth = Base64.getEncoder().encodeToString(credentials.getBytes());
+//    private String credentials = "user:pass1234";
+//    private String encodedAuth = Base64.getEncoder().encodeToString(credentials.getBytes());
 
     @Autowired
     WebClient webClient;
@@ -20,7 +20,7 @@ public class DocenteConnector {
     public DocenteDTO getDocente(Long id) {
         return webClient.get()
                 .uri("/docenti/{id}", id)
-                .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth)
+//                .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth)
                 .retrieve()
                 .bodyToMono(DocenteDTO.class)
                 .block();
