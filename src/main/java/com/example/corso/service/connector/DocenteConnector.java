@@ -11,16 +11,22 @@ import java.util.Base64;
 
 @Component
 public class DocenteConnector {
-//    private String credentials = "user:pass1234";
-//    private String encodedAuth = Base64.getEncoder().encodeToString(credentials.getBytes());
+
+    private final WebClient.Builder webClientBuilder;
 
     @Autowired
-    WebClient webClient;
+    public DocenteConnector(WebClient.Builder webClientBuilder) {
+        this.webClientBuilder = webClientBuilder;
+    }
+
+    private WebClient webClient() {
+        // every time you build, the filter will inject the header
+        return webClientBuilder.build();
+    }
 
     public DocenteDTO getDocente(Long id) {
-        return webClient.get()
+        return webClient().get()
                 .uri("/docenti/{id}", id)
-//                .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth)
                 .retrieve()
                 .bodyToMono(DocenteDTO.class)
                 .block();

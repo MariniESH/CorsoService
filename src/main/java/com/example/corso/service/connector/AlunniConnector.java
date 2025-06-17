@@ -11,19 +11,25 @@ import java.util.List;
 
 @Component
 public class AlunniConnector {
-//    private String credentials = "user:pass1234";
-//    private String encodedAuth = Base64.getEncoder().encodeToString(credentials.getBytes());
+
+    private final WebClient.Builder webClientBuilder;
 
     @Autowired
-    WebClient webClient;
+    public AlunniConnector(WebClient.Builder webClientBuilder) {
+        this.webClientBuilder = webClientBuilder;
+    }
+
+    private WebClient webClient() {
+        // every time you build, the filter will inject the header
+        return webClientBuilder.build();
+    }
 
     public List<AlunnoWithoutCorsiDTO> getAlunni(List<Long> ids) {
         if (ids.isEmpty()) { return List.of(); }
 
-        return webClient.post()
+        return webClient().post()
                 .uri("/alunni/by-ids", ids)
                 .bodyValue(ids)
-//                .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedAuth)
                 .retrieve()
                 .bodyToFlux(AlunnoWithoutCorsiDTO.class)
                 .collectList()
